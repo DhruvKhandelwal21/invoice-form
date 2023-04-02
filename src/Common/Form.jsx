@@ -52,8 +52,36 @@ const Form = ({ type, addItems, items }) => {
     const temp = Number(event.target.value);
 
     if (temp === 0) {
-      console.log("hi");
-      setValues({ ...values, [val]: "" });
+      if(val==="discount"){
+        setValues({ ...values, [val]: "",totalPrice:parseFloat(
+          (
+            Number(values.quantity) *Number(values.price) +
+            Number(values.tax)
+          ).toFixed(2)
+        ),discountPercent: ""});
+      }else if(val==="discountPercent"){
+        setValues({ ...values, [val]: "",totalPrice:parseFloat(
+          (
+            Number(values.quantity)*Number(values.price) +
+            Number(values.tax)
+          ).toFixed(2)
+        ),discount: ""});
+      }else if(val==="tax"){
+        setValues({ ...values, [val]: "",totalPrice:parseFloat(
+          (
+            Number(values.quantity)*Number(values.price) -
+            Number(values.discount)
+          ).toFixed(2)
+        ),taxPercent: ""});
+      }else if(val==="taxPercent"){
+        setValues({ ...values, [val]: "",totalPrice:parseFloat(
+          (
+            Number(values.quantity)*Number(values.price) -
+            Number(values.discount)
+          ).toFixed(2)
+        ),tax: ""});
+      }
+      
     } else {
       if (val === "quantity") {
         setValues({
