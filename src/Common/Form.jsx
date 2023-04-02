@@ -52,7 +52,12 @@ const Form = ({ type, addItems, items }) => {
     const temp = Number(event.target.value);
 
     if (temp === 0) {
-      if(val==="discount"){
+      if(val==="quantity"){
+             setValues({...values,[val]:"",totalPrice:""})
+      }else if(val==="price"){
+        setValues({...values,[val]:"",totalPrice:""})
+      }
+      else if(val==="discount"){
         setValues({ ...values, [val]: "",totalPrice:parseFloat(
           (
             Number(values.quantity) *Number(values.price) +
@@ -69,7 +74,7 @@ const Form = ({ type, addItems, items }) => {
       }else if(val==="tax"){
         setValues({ ...values, [val]: "",totalPrice:parseFloat(
           (
-            Number(values.quantity)*Number(values.price) -
+            Number(values.quantity)*Number(values.price) +
             Number(values.discount)
           ).toFixed(2)
         ),taxPercent: ""});
