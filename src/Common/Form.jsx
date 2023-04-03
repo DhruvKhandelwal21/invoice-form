@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState} from "react";
 import { Box, FormHelperText, TextField, Stack, Button } from "@mui/material";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -24,6 +24,16 @@ const Form = ({ type, addItems, items }) => {
     taxPercent: items ? items.taxPercent : "",
     totalPrice: items ? items.totalPrice : "",
   });
+
+  // const myobj = {
+  //   quantity: ["discount", "tax", "totalPrice"],
+  //   price: ["discount", "tax", "totalPrice"],
+  //   discount: ["discountPercent", "totalPrice"],
+  //   discountPercent: ["discount", "totalPrice"],
+  //   tax: ["taxPercent", "totalPrice "],
+  //   taxPercent: ["tax", "totalPrice"],
+  // };
+  // console.log(myobj);
   //function for calculating discount percent
   const calcPercent = (price) => {
     const listPrice = Number(values.price) * Number(values.quantity);
@@ -31,8 +41,8 @@ const Form = ({ type, addItems, items }) => {
     return parseFloat(((price / listPrice) * 100).toFixed(2));
   };
   //function for calculating discount on changing percent
-  const calcValue = (percent) => {
-    const listPrice = Number(values.price) * Number(values.quantity);
+  const calcValue = (quantity, price, percent) => {
+    const listPrice = Number(price) * Number(quantity);
     return parseFloat(((percent * listPrice) / 100).toFixed(2));
   };
   //function for calculating tax
@@ -41,130 +51,113 @@ const Form = ({ type, addItems, items }) => {
     return parseFloat(((price * 100) / listPrice).toFixed(2));
   };
   //function for calculating tax with tax percent
-  const calcTaxValue = (price) => {
-    const listPrice = Number(values.price) * Number(values.quantity);
-    return parseFloat(((price * listPrice) / 100).toFixed(2));
+  const calcTaxValue = (quantity, price, taxPercent) => {
+    const listPrice = Number(price) * Number(quantity);
+    return parseFloat(((taxPercent * listPrice) / 100).toFixed(2));
   };
+
   //input change handler
   const onChangeHandler = (event) => {
     const val = event.target.name;
-
     const temp = Number(event.target.value);
 
-    if (temp === 0) {
-      if(val==="quantity"){
-             setValues({...values,[val]:"",totalPrice:""})
-      }else if(val==="price"){
-        setValues({...values,[val]:"",totalPrice:""})
-      }
-      else if(val==="discount"){
-        setValues({ ...values, [val]: "",totalPrice:parseFloat(
+    if (val === "quantity") {
+      setValues({
+        ...values,
+        [event.target.name]: temp === 0 ? "" : temp,
+        totalPrice:
+          values.price === ""
+            ? ""
+            : parseFloat(
+                (
+                  temp * Number(values.price) +
+                  calcTaxValue(temp, values.price, values.taxPercent) -
+                  calcValue(temp, values.price, values.discountPercent)
+                ).toFixed(2)
+              ),
+        discount:
+          values.price === ""
+            ? ""
+            : calcValue(temp, values.price, values.discountPercent),
+        tax:
+          values.price === ""
+            ? ""
+            : calcTaxValue(temp, values.price, values.taxPercent),
+      });
+    } else if (val === "price") {
+      setValues({
+        ...values,
+        [val]: temp === 0 ? "" : temp,
+        totalPrice: parseFloat(
           (
-            Number(values.quantity) *Number(values.price) +
-            Number(values.tax)
+            Number(values.quantity) * temp -
+            calcValue(values.quantity, temp, values.discountPercent) +
+            calcTaxValue(values.quantity, temp, values.taxPercent)
           ).toFixed(2)
-        ),discountPercent: ""});
-      }else if(val==="discountPercent"){
-        setValues({ ...values, [val]: "",totalPrice:parseFloat(
+        ),
+        discount:
+          values.discountPercent === ""
+            ? ""
+            : calcValue(values.quantity, temp, values.discountPercent),
+        tax:
+          values.taxPercent === ""
+            ? ""
+            : calcTaxValue(values.quantity, temp, values.taxPercent),
+      });
+    } else if (val === "discount") {
+      setValues({
+        ...values,
+        [val]: temp === 0 ? "" : temp,
+        totalPrice: parseFloat(
           (
-            Number(values.quantity)*Number(values.price) +
-            Number(values.tax)
+            Number(values.quantity) * Number(values.price) +
+            Number(values.tax) -
+            temp
           ).toFixed(2)
-        ),discount: ""});
-      }else if(val==="tax"){
-        setValues({ ...values, [val]: "",totalPrice:parseFloat(
+        ),
+        discountPercent: temp === 0 ? "" : calcPercent(temp),
+      });
+    } else if (val === "discountPercent") {
+      setValues({
+        ...values,
+        [val]: temp === 0 ? "" : temp,
+        discount:
+          temp === 0 ? "" : calcValue(values.quantity, values.price, temp),
+        totalPrice: parseFloat(
           (
-            Number(values.quantity)*Number(values.price) +
+            Number(values.quantity) * Number(values.price) +
+            Number(values.tax) -
+            calcValue(values.quantity, values.price, temp)
+          ).toFixed(2)
+        ),
+      });
+    } else if (val === "tax") {
+      setValues({
+        ...values,
+        [val]: temp === 0 ? "" : temp,
+        totalPrice: parseFloat(
+          (
+            Number(values.quantity) * Number(values.price) +
+            temp -
             Number(values.discount)
           ).toFixed(2)
-        ),taxPercent: ""});
-      }else if(val==="taxPercent"){
-        setValues({ ...values, [val]: "",totalPrice:parseFloat(
+        ),
+        taxPercent: temp === 0 ? "" : calcTaxPercent(temp),
+      });
+    } else if (val === "taxPercent") {
+      setValues({
+        ...values,
+        [val]: temp === 0 ? "" : temp,
+        tax:
+          temp === 0 ? "" : calcTaxValue(values.quantity, values.price, temp),
+        totalPrice: parseFloat(
           (
-            Number(values.quantity)*Number(values.price) -
+            Number(values.quantity) * Number(values.price) +
+            calcTaxValue(values.quantity, values.price, temp) -
             Number(values.discount)
           ).toFixed(2)
-        ),tax: ""});
-      }
-      
-    } else {
-      if (val === "quantity") {
-        setValues({
-          ...values,
-          [event.target.name]: temp,
-          totalPrice: parseFloat(
-            (
-              temp * Number(values.price) +
-              Number(values.tax) -
-              Number(values.discount)
-            ).toFixed(2)
-          ),
-        });
-      } else if (val === "price") {
-        setValues({
-          ...values,
-          [val]: temp,
-          totalPrice: parseFloat(
-            (
-              Number(values.quantity) * temp +
-              Number(values.tax) -
-              Number(values.discount)
-            ).toFixed(2)
-          ),
-        });
-      } else if (val === "discount") {
-        setValues({
-          ...values,
-          [val]: temp,
-          totalPrice: parseFloat(
-            (
-              Number(values.quantity) * Number(values.price) +
-              Number(values.tax) -
-              temp
-            ).toFixed(2)
-          ),
-          discountPercent: calcPercent(temp),
-        });
-      } else if (val === "discountPercent") {
-        setValues({
-          ...values,
-          [val]: temp,
-          discount: calcValue(temp),
-          totalPrice: parseFloat(
-            (
-              Number(values.quantity) * Number(values.price) +
-              Number(values.tax) -
-              calcValue(temp)
-            ).toFixed(2)
-          ),
-        });
-      } else if (val === "tax") {
-        setValues({
-          ...values,
-          [val]: temp,
-          totalPrice: parseFloat(
-            (
-              Number(values.quantity) * Number(values.price) +
-              temp -
-              Number(values.discount)
-            ).toFixed(2)
-          ),
-          taxPercent: calcTaxPercent(temp),
-        });
-      } else if (val === "taxPercent") {
-        setValues({
-          ...values,
-          [val]: temp,
-          tax: calcTaxValue(temp),
-          totalPrice: parseFloat(
-            (
-              Number(values.quantity) * Number(values.price) +
-              calcTaxValue(temp) -
-              Number(values.discount)
-            ).toFixed(2)
-          ),
-        });
-      }
+        ),
+      });
     }
   };
   //Validation logic using very cool toast containers
@@ -243,6 +236,7 @@ const Form = ({ type, addItems, items }) => {
 
             <TextField
               name="price"
+              placeholder="enter price"
               type="number"
               value={values.price}
               onChange={onChangeHandler}
@@ -256,6 +250,7 @@ const Form = ({ type, addItems, items }) => {
 
             <TextField
               name="discount"
+              placeholder="enter discount"
               type="number"
               value={values.discount}
               onChange={onChangeHandler}
@@ -266,6 +261,7 @@ const Form = ({ type, addItems, items }) => {
 
             <TextField
               name="discountPercent"
+              placeholder="enter discount percent"
               type="number"
               value={values.discountPercent}
               onChange={onChangeHandler}
@@ -279,6 +275,7 @@ const Form = ({ type, addItems, items }) => {
 
             <TextField
               name="tax"
+              placeholder="enter tax"
               type="number"
               value={values.tax}
               onChange={onChangeHandler}
@@ -290,6 +287,7 @@ const Form = ({ type, addItems, items }) => {
             <TextField
               id="num"
               name="taxPercent"
+              placeholder="enter tax percent"
               type="number"
               value={values.taxPercent}
               onChange={onChangeHandler}
@@ -301,6 +299,7 @@ const Form = ({ type, addItems, items }) => {
 
           <TextField
             id="num"
+            placeholder="total price"
             name="totalPrice"
             type="number"
             value={values.totalPrice}
